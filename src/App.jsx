@@ -181,8 +181,12 @@ function MetDatabase({ appId }) {
   return <Hoofd db={db} user={user} />;
 }
 
+// De database van Kay & vriendin — staat hier vast zodat de app direct werkt.
+// (Een App ID is geen geheim: hij is toch zichtbaar voor iedereen die de app gebruikt.)
+const STANDAARD_APP_ID = 'd217992d-fcff-41a3-85db-ea033f616c8d';
+
 export default function App() {
-  const [appId, setAppId] = useState(() => localStorage.getItem('ta-app-id') || '');
+  const [appId, setAppId] = useState(() => localStorage.getItem('ta-app-id') || STANDAARD_APP_ID);
   const [demo, setDemo] = useState(false);
 
   if (demo) {
