@@ -104,6 +104,7 @@ label { font-size: 13px; font-weight: 700; color: var(--tekst-licht); display: b
 .stip.werk { background: var(--kleur-werk); }
 .stip.prive { background: var(--kleur-prive); }
 .stip.samen { background: var(--kleur-samen); }
+.stip.apple { background: #94a3b8; }
 .raster .gekozen .stip { background: #fff; }
 
 /* ===== Afspraak-kaartjes ===== */
@@ -117,6 +118,7 @@ label { font-size: 13px; font-weight: 700; color: var(--tekst-licht); display: b
 .afspraak.werk { border-left-color: var(--kleur-werk); }
 .afspraak.prive { border-left-color: var(--kleur-prive); }
 .afspraak.samen { border-left-color: var(--kleur-samen); }
+.afspraak.apple { border-left-color: #94a3b8; cursor: default; }
 .afspraak .tijd { font-size: 13px; font-weight: 800; color: var(--tekst-licht); min-width: 52px; }
 .afspraak .titel { font-weight: 700; font-size: 15px; }
 .afspraak .sub { font-size: 12px; color: var(--tekst-licht); margin-top: 2px; }

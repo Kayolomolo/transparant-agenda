@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { init, id } from '@instantdb/react';
 import { maakDemoDb, demoGebruiker } from './lib/demo.js';
+import { haalAppleAgenda } from './lib/apple.js';
 import Inloggen from './components/Inloggen.jsx';
 import Agenda from './components/Agenda.jsx';
 import Salaris from './components/Salaris.jsx';
@@ -115,16 +116,34 @@ function ProfielAanmaken({ db, user }) {
 // ======= De app zelf (na inloggen) =======
 function Hoofd({ db, user }) {
   const [tab, setTab] = useState('agenda');
+  const [appleAfspraken, setAppleAfspraken] = useState([]);
   const { isLoading, error, data } = db.useQuery({ profielen: {}, afspraken: {} });
+
+  const profielen = data?.profielen || [];
+  const afspraken = data?.afspraken || [];
+  const mijnProfiel = profielen.find((p) => p.email === user.email);
+  const appleUrl = mijnProfiel?.appleAgendaUrl || '';
+
+  // Jouw Apple/iCloud-agenda erbij laden (alleen zichtbaar voor jou)
+  useEffect(() => {
+    let actief = true;
+    if (!appleUrl) {
+      setAppleAfspraken([]);
+      return;
+    }
+    haalAppleAgenda(appleUrl, user.email)
+      .then((lijst) => { if (actief) setAppleAfspraken(lijst); })
+      .catch(() => { if (actief) setAppleAfspraken([]); });
+    return () => { actief = false; };
+  }, [appleUrl, user.email]);
 
   if (isLoading) return <Laadscherm />;
   if (error) return <Laadscherm tekst={`Er ging iets mis: ${error.message}`} />;
 
-  const profielen = data.profielen || [];
-  const afspraken = data.afspraken || [];
-  const mijnProfiel = profielen.find((p) => p.email === user.email);
-
   if (!mijnProfiel) return <ProfielAanmaken db={db} user={user} />;
+
+  // Eigen afspraken + die uit je Apple-agenda samen in één lijst
+  const alleAfspraken = [...afspraken, ...appleAfspraken];
 
   const TABS = [
     { id: 'agenda', emoji: '📅', naam: 'Agenda' },
@@ -144,7 +163,7 @@ function Hoofd({ db, user }) {
 
       <main className="inhoud">
         {tab === 'agenda' && (
-          <Agenda db={db} user={user} profielen={profielen} afspraken={afspraken} mijnProfiel={mijnProfiel} />
+          <Agenda db={db} user={user} profielen={profielen} afspraken={alleAfspraken} mijnProfiel={mijnProfiel} />
         )}
         {tab === 'salaris' && (
           <Salaris user={user} afspraken={afspraken} mijnProfiel={mijnProfiel} />
@@ -157,7 +176,7 @@ function Hoofd({ db, user }) {
         )}
       </main>
 
-      <SpraakKnop db={db} user={user} profielen={profielen} afspraken={afspraken} />
+      <SpraakKnop db={db} user={user} profielen={profielen} afspraken={alleAfspraken} />
 
       <nav className="tabbalk">
         {TABS.map((t) => (

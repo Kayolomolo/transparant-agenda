@@ -18,6 +18,35 @@ export default function Instellingen({ db, user, afspraken, mijnProfiel }) {
     try { return JSON.parse(mijnProfiel.toeslagen || '[]'); } catch { return []; }
   });
   const [opgeslagen, setOpgeslagen] = useState(false);
+  const [appleUrl, setAppleUrl] = useState(mijnProfiel.appleAgendaUrl || '');
+  const [appleOpgeslagen, setAppleOpgeslagen] = useState(false);
+  const [gekopieerd, setGekopieerd] = useState(false);
+
+  // De app draait straks op vercel.app — op je eigen computer (localhost)
+  // kan Apple niet bij de link, dus dan tonen we alvast het online adres.
+  const host = window.location.host.includes('localhost')
+    ? 'transparant-agenda.vercel.app'
+    : window.location.host;
+  const abonnementsLink = mijnProfiel.feedToken
+    ? `webcal://${host}/api/ics?token=${mijnProfiel.feedToken}`
+    : null;
+
+  function maakAbonnement() {
+    const token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, '');
+    db.transact(db.tx.profielen[mijnProfiel.id].update({ feedToken: token }));
+  }
+
+  function kopieerLink() {
+    navigator.clipboard.writeText(abonnementsLink);
+    setGekopieerd(true);
+    setTimeout(() => setGekopieerd(false), 2000);
+  }
+
+  function bewaarAppleUrl() {
+    db.transact(db.tx.profielen[mijnProfiel.id].update({ appleAgendaUrl: appleUrl.trim() }));
+    setAppleOpgeslagen(true);
+    setTimeout(() => setAppleOpgeslagen(false), 2000);
+  }
 
   function opslaan() {
     db.transact(
@@ -153,11 +182,64 @@ export default function Instellingen({ db, user, afspraken, mijnProfiel }) {
       <div style={{ height: 14 }} />
 
       <div className="kaart">
-        <h2>📲 Telefoonagenda</h2>
-        <p style={{ fontSize: 13, color: 'var(--tekst-licht)', marginBottom: 10 }}>
-          Download al je afspraken als agenda-bestand. Als je het opent, vraagt je
-          telefoon of je ze in je agenda-app (Apple/Google Agenda) wilt zetten.
-          Een automatisch agenda-abonnement stellen we in zodra de app online staat.
+        <h2>📲 Koppeling met Apple Agenda</h2>
+
+        <p style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
+          1️⃣ Deze app → je Apple Agenda (automatisch)
+        </p>
+        {abonnementsLink ? (
+          <>
+            <p style={{ fontSize: 13, color: 'var(--tekst-licht)', marginBottom: 8 }}>
+              Dit is jouw persoonlijke abonnementslink. Open hem op je iPhone, of kopieer
+              hem en plak hem in: Instellingen → Apps → Agenda → Agenda-accounts →
+              Voeg account toe → Overig → Voeg agenda-abonnement toe.
+            </p>
+            <input readOnly value={abonnementsLink} onFocus={(e) => e.target.select()} style={{ fontSize: 12, marginBottom: 8 }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="knop klein" type="button" onClick={kopieerLink}>
+                {gekopieerd ? 'Gekopieerd! ✅' : '📋 Kopieer link'}
+              </button>
+              <a className="knop rustig klein" style={{ textAlign: 'center', textDecoration: 'none' }} href={abonnementsLink}>
+                📆 Open op deze telefoon
+              </a>
+            </div>
+          </>
+        ) : (
+          <>
+            <p style={{ fontSize: 13, color: 'var(--tekst-licht)', marginBottom: 8 }}>
+              Maak een persoonlijke link waarop je Apple Agenda zich kan abonneren —
+              dan verschijnen je afspraken uit deze app vanzelf in je telefoonagenda.
+            </p>
+            <button className="knop rustig" type="button" onClick={maakAbonnement}>
+              🔗 Maak mijn abonnementslink
+            </button>
+          </>
+        )}
+
+        <div style={{ height: 18 }} />
+
+        <p style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
+          2️⃣ Je Apple Agenda → deze app
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--tekst-licht)', marginBottom: 8 }}>
+          Zet op je iPhone je agenda op openbaar: Agenda-app → Agenda's (onderaan) →
+          ⓘ naast je agenda → <b>Openbare agenda</b> aanzetten → <b>Deel link</b> →
+          kopieer de link en plak hem hier. Deze afspraken ziet alleen jij, niet je partner.
+        </p>
+        <input
+          value={appleUrl}
+          onChange={(e) => setAppleUrl(e.target.value)}
+          placeholder="webcal://p…-caldav.icloud.com/published/…"
+          style={{ fontSize: 12, marginBottom: 8 }}
+        />
+        <button className="knop klein" type="button" onClick={bewaarAppleUrl}>
+          {appleOpgeslagen ? 'Opgeslagen! ✅' : '🍏 Koppeling opslaan'}
+        </button>
+
+        <div style={{ height: 18 }} />
+
+        <p style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
+          3️⃣ Losse download
         </p>
         <button className="knop rustig" onClick={exporteerAgenda}>⬇️ Download mijn agenda (.ics)</button>
       </div>

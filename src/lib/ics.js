@@ -3,10 +3,11 @@
 // of je de afspraak wilt toevoegen.
 
 function icsDatum(iso) {
-  // Agenda-apps willen dit formaat: 20260707T143000
+  // Agenda-apps willen dit formaat: 20260707T123000Z (in wereldtijd/UTC,
+  // de Z zorgt dat Apple/Google het zelf goed omrekent naar Nederlandse tijd)
   const d = new Date(iso);
   const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`;
+  return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}00Z`;
 }
 
 function ontsnap(tekst) {

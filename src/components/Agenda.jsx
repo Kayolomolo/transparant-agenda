@@ -76,17 +76,25 @@ export default function Agenda({ db, user, profielen, afspraken, mijnProfiel }) 
           <button
             key={a.id}
             className={`afspraak ${a.categorie} ${a.bezet ? 'bezet' : ''}`}
-            onClick={() => !a.bezet && setFormulier({ bestaand: a })}
+            onClick={() => !a.bezet && a.categorie !== 'apple' && setFormulier({ bestaand: a })}
           >
             <div className="tijd">
-              {mooieTijd(new Date(a.start))}<br />
-              <span style={{ fontWeight: 500 }}>{mooieTijd(new Date(a.eind))}</span>
+              {a.heleDag ? (
+                <span style={{ fontWeight: 500 }}>hele dag</span>
+              ) : (
+                <>
+                  {mooieTijd(new Date(a.start))}<br />
+                  <span style={{ fontWeight: 500 }}>{mooieTijd(new Date(a.eind))}</span>
+                </>
+              )}
             </div>
             <div style={{ flex: 1 }}>
               <div className="titel">{a.bezet ? '🔒 Bezet' : a.titel}</div>
               <div className="sub">
                 {a.vanPartner ? `👤 ${naamVan(a.eigenaar)} · ` : ''}
-                {mooieDuur(duurInMinuten(a.start, a.eind))}
+                {a.categorie === 'apple'
+                  ? '🍏 Uit je Apple Agenda'
+                  : mooieDuur(duurInMinuten(a.start, a.eind))}
                 {a.categorie === 'werk' && a.pauzeMinuten > 0 ? ` · ${a.pauzeMinuten}m pauze` : ''}
               </div>
             </div>
